@@ -4,6 +4,7 @@ import (
     "fmt"
     "net/http"
     "time"
+    "log"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -12,5 +13,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     http.HandleFunc("/time", handler)
-    http.ListenAndServe(":8080", nil)
+    err := http.ListenAndServe(":8080", nil)
+    if err != nil {
+        log.Fatal(err)
+    }
 }
