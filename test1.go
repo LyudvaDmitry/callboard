@@ -8,7 +8,10 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprint(w, time.Now().UTC())
+    _, err := fmt.Fprint(w, time.Now().UTC())
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 
 func main() {
