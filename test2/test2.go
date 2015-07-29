@@ -1,15 +1,15 @@
 package main
 
 import (
-    "net/http"
+	"net/http"
 	"html/template"
-    "log"
+	"log"
 )
 
 type Advert struct {
-    Title string
-    Body  string
-//  Body  []byte
+	Title string
+	Body  string
+//	Body  []byte
 }
 
 //html или javascript в объявлении?
@@ -36,22 +36,22 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 func AddHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Starting adding advert '%v'", r.FormValue("title"))
 	adv_list = append(adv_list, Advert{r.FormValue("title"), r.FormValue("body")})
-    http.Redirect(w, r, "/view", http.StatusFound)
+	http.Redirect(w, r, "/view", http.StatusFound)
 	log.Printf("Added advert '%v'", r.FormValue("title"))
 }
 
 func DelHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Starting deleting all adverts")
 	adv_list = make([]Advert, 0)
-    http.Redirect(w, r, "/view", http.StatusFound)
+	http.Redirect(w, r, "/view", http.StatusFound)
 	log.Println("Deleted all adverts")
 }
 
 func main() {
-    http.HandleFunc("/view", ViewHandler)
-    http.HandleFunc("/add", AddHandler)
-    http.HandleFunc("/deleteall", DelHandler)
-    if err := http.ListenAndServe(":8080", nil); err != nil {
-        log.Fatal(err)
-    }
+	http.HandleFunc("/view", ViewHandler)
+	http.HandleFunc("/add", AddHandler)
+	http.HandleFunc("/deleteall", DelHandler)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }
