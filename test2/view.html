@@ -1,0 +1,21 @@
+{{range .}} 
+
+<h1>{{.Title}}</h1>
+
+<div>{{printf "%s" .Body}}</div> 
+
+{{end}}
+
+<h1>Adding new advert</h1>
+
+<form action="/view" method="POST">
+
+<div><textarea name="title" rows="1" cols="80">Enter advert name here</textarea></div>
+
+<div><textarea name="body" rows="20" cols="80">Enter advert text here</textarea></div>
+
+<div><input name="button" type="submit" value="Save"></div>
+
+<div><input name="button" type="submit" value="Delete all adverts"></div>
+
+</form>
