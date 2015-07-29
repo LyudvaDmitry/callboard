@@ -34,9 +34,7 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	adv_list = make([]Advert, 2)
-	adv_list[0] = Advert{"Hello", "Look at me"}
-	adv_list[1] = Advert{"Go away", "Fucker"}
+	adv_list = make([]Advert, 0)
 	http.HandleFunc("/view", ViewHandler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
