@@ -4,33 +4,36 @@ import (
 	"net/http"
 	"html/template"
 	"log"
+	"sync"
 )
 
 type Advert struct {
 	Title string
 	Body  string
-//	Body  []byte
 }
 
 var templates = template.Must(template.ParseFiles("view.html"))
 var adv_list []Advert
+var mutex = sync.Mutex{}
 
 func ViewHandler(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("button") == "Save" {
-		log.Printf("Starting adding advert '%v'", r.FormValue("title"))
-		adv_list = append(adv_list, Advert{r.FormValue("title"), r.FormValue("body")})
-		log.Printf("Added advert '%v'", r.FormValue("title"))
-	} else if r.FormValue("button") == "Delete all adverts" {
-		log.Println("Starting deleting all adverts")
+	title, button := r.FormValue("title"), r.FormValue("button")
+	if button == "Save" {
+		mutex.Lock()
+		log.Printf("Adding advert '%v'", title)
+		adv_list = append(adv_list, Advert{title, r.FormValue("body")})
+		mutex.Unlock()
+	} else if button == "DeleteAll" {
+		mutex.Lock()
+		log.Println("Deleting all adverts")
 		adv_list = make([]Advert, 0)
-		log.Println("Deleted all adverts")
+		mutex.Unlock()
 	}
-	log.Println("Starting template execution")
+	log.Println("Executing templates")
 	if err := templates.ExecuteTemplate(w, "view.html", adv_list); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Println("Successfully executed templates")
 }
 
 func main() {
