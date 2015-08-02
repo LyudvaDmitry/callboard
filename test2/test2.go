@@ -1,28 +1,28 @@
 package main
 
 import (
-	"net/http"
+	"encoding/base64"
+	"encoding/json"
+	"flag"
 	"html/template"
 	"log"
-	"sync"
-	"encoding/base64"
+	"net/http"
 	"strings"
-	"flag"
-	"encoding/json"
+	"sync"
 )
 
 type Advert struct {
-	Title string
-	Body  string
+	Title    string
+	Body     string
 	Username string
 }
 
 var (
 	templates = template.Must(template.ParseFiles("view.html"))
-	adv_list = make([]Advert, 0)
-	mutex sync.Mutex
-	fs = http.FileServer(http.Dir(""))
-	port = flag.String("port", ":8080", "Number of port to use. Example: ':8080'")
+	adv_list  = make([]Advert, 0)
+	mutex     sync.Mutex
+	fs        = http.FileServer(http.Dir(""))
+	port      = flag.String("port", ":8080", "Number of port to use. Example: ':8080'")
 )
 
 //func (*Request) BasicAuth
@@ -54,13 +54,13 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if (r.Header.Get("Content-Type") == "application/json") {
+	if r.Header.Get("Content-Type") == "application/json" {
 		log.Printf("Sending JSON to %s", username)
 		b, err := json.Marshal(adv_list)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-    	w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write(b); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -82,7 +82,7 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("Executing templates")
-    w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(w, "view.html", adv_list); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
