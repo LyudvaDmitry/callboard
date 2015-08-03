@@ -13,6 +13,8 @@ import (
 	"strconv"
 )
 
+const html = "view_bootstrap.html"
+
 type Advert struct {
 	Title    string
 	Body     string
@@ -21,7 +23,7 @@ type Advert struct {
 }
 
 var (
-	templates = template.Must(template.ParseFiles("view.html"))
+	templates = template.Must(template.ParseFiles(html))
 	adv_list  = make([]Advert, 0)
 	mutex     sync.Mutex
 	port      = flag.String("port", ":8080", "Number of port to use. Example: ':8080'")
@@ -112,7 +114,7 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Executing templates")
 	w.Header().Set("Content-Type", "text/html")
-	if err := templates.ExecuteTemplate(w, "view.html", adv_list); err != nil {
+	if err := templates.ExecuteTemplate(w, html, adv_list); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
