@@ -8,7 +8,7 @@
 		<img src="/static/logo.jpg" width="350" height="100" alt="logo">
 		{{range .}} 
 			<h1>{{.Title}}</h1>
-			<div>By {{.Username}}</div> <br>
+			<div>{{.Time}} by {{.Username}}</div> <br>
 			<div>{{.Body}}</div> 
 		{{end}}
 		
