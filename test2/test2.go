@@ -1,13 +1,11 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 )
 
@@ -21,40 +19,17 @@ var (
 	templates = template.Must(template.ParseFiles("view.html"))
 	adv_list  = make([]Advert, 0)
 	mutex     sync.Mutex
-	fs        = http.FileServer(http.Dir(""))
 	port      = flag.String("port", ":8080", "Number of port to use. Example: ':8080'")
 )
 
-//func (*Request) BasicAuth
-//Нашел ее случайно и слишком поздно
-func GetUsername(r *http.Request) string {
-	s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-	if len(s) != 2 || s[0] != "Basic" {
-		return ""
-	}
-	b, err := base64.StdEncoding.DecodeString(s[1])
-	if err != nil {
-		return ""
-	}
-	pair := strings.SplitN(string(b), ":", 2)
-	if len(pair) != 2 {
-		return ""
-	}
-	return pair[0]
-}
-
 func ViewHandler(w http.ResponseWriter, r *http.Request) {
-	username := GetUsername(r)
-	if username == "" {
+	username, _, ok := r.BasicAuth()
+	if !ok {
 		w.Header().Set("WWW-Authenticate", `Basic realm="callboard"`)
-		w.WriteHeader(401)
-		if _, err := w.Write([]byte("401 Unauthorized\n")); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	if r.Header.Get("Content-Type") == "application/json" {
+	if r.Header.Get("Accept") == "application/json" {
 		log.Printf("Sending JSON to %s", username)
 		b, err := json.Marshal(adv_list)
 		if err != nil {
@@ -91,7 +66,7 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
-	http.Handle("/static/", fs)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	http.HandleFunc("/view", ViewHandler)
 	//log.Fatal(http.ListenAndServe(*port, nil))
 	log.Fatal(http.ListenAndServeTLS(*port, "cert.pem", "key.pem", nil))
