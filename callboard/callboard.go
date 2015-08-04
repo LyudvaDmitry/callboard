@@ -1,20 +1,20 @@
-package main
+//Package callboard implements simple callboard realisation.
+package callboard
 
 import (
 	"encoding/json"
-	"flag"
 	"html/template"
 	"log"
 	"mime"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
-const html = "view_bootstrap.html"
-
+//Advert contains all the information about advert.
 type Advert struct {
 	Title    string
 	Body     string
@@ -22,14 +22,38 @@ type Advert struct {
 	Time     string
 }
 
-var (
-	templates = template.Must(template.ParseFiles(html))
-	adverts  = make([]Advert, 0)
-	mutex     sync.Mutex
-	port      = flag.String("port", ":8080", "Number of port to use. Example: ':8080'")
-)
+//Callboard implements http.Header interface. It creates callboard
+//available at the given URL.
+type Callboard struct {
+	Adverts  []Advert
+	mutex    sync.Mutex
+	template *template.Template
+}
 
-func IfMIMETypePreferred(r *http.Request, mtype string) (bool, error) {
+//NewCallboard returns initialized Callboard.
+func NewCallboard() Callboard {
+	adverts := make([]Advert, 1)
+	adverts[0] = Advert{"Sample title", "It's a sample Advert. Delete it using 'Delete all adverts' button.", "Callboard", time.Now().Format(time.RFC850)}
+	return Callboard{Adverts: adverts, template: template.Must(template.ParseFiles(html))}
+}
+
+const html = "view_bootstrap.html"
+
+func (c Callboard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, "/view") {
+		c.viewHandler(w, r)
+	}
+	matched, err := regexp.MatchString(`.*/static/[^/]*\.(css|jpg|png)`, r.URL.Path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if matched {
+		http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))).ServeHTTP(w, r)
+	}
+}
+
+func ifMIMETypePreferred(r *http.Request, mtype string) (bool, error) {
 	log.Println(r.Header["Accept"])
 	accept := make([]string, 0)
 	for _, val := range r.Header["Accept"] {
@@ -69,21 +93,21 @@ func IfMIMETypePreferred(r *http.Request, mtype string) (bool, error) {
 	return false, nil
 }
 
-func ViewHandler(w http.ResponseWriter, r *http.Request) {
+func (c Callboard) viewHandler(w http.ResponseWriter, r *http.Request) {
 	username, _, ok := r.BasicAuth()
 	if !ok {
 		w.Header().Set("WWW-Authenticate", `Basic realm="callboard"`)
 		http.Error(w, "401 Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	JSON, err := IfMIMETypePreferred(r, "application/json")
+	JSON, err := ifMIMETypePreferred(r, "application/json")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if JSON {
 		log.Printf("Sending JSON to %s", username)
-		b, err := json.Marshal(adverts)
+		b, err := json.Marshal(c.Adverts)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -97,31 +121,23 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	title, button := r.FormValue("title"), r.FormValue("button")
 	if button != "" {
-		mutex.Lock()
+		c.mutex.Lock()
 		switch button {
 		case "Save":
 			log.Printf("Adding advert '%v' as %s", title, username)
-			adverts = append(adverts, Advert{title, r.FormValue("body"), username, time.Now().Format(time.RFC850)})
+			c.Adverts = append(c.Adverts, Advert{title, r.FormValue("body"), username, time.Now().Format(time.RFC850)})
 		case "DeleteAll":
-			log.Printf("Deleting all adverts as %s", username)
-			adverts = make([]Advert, 0)
+			log.Printf("Deleting all c.Adverts as %s", username)
+			c.Adverts = make([]Advert, 0)
 		}
-		mutex.Unlock()
+		c.mutex.Unlock()
 		http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		return
 	}
 	log.Println("Executing templates")
 	w.Header().Set("Content-Type", "text/html")
-	if err := templates.ExecuteTemplate(w, html, adverts); err != nil {
+	if err := c.template.ExecuteTemplate(w, html, c.Adverts); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-}
-
-func main() {
-	flag.Parse()
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-	http.HandleFunc("/view", ViewHandler)
-	//log.Fatal(http.ListenAndServe(*port, nil))
-	log.Fatal(http.ListenAndServeTLS(*port, "cert.pem", "key.pem", nil))
 }
