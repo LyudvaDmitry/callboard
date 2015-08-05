@@ -39,13 +39,9 @@ func NewCallboard(html_temp string) *Callboard {
 //ServeHTTP reads Request and writes reply data to ResponseWriter.
 //It is required by http.Handler interface.
 func (c *Callboard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if strings.HasSuffix(r.URL.Path, "/view") {
-		if err := c.viewHandler(w, r); err != nil {
-			log.Println(err.Error)
-			http.Error(w, err.Error.Error(), err.Code)
-		}
-	} else {
-		http.Error(w, "404 not found", 404)
+	if err := c.viewHandler(w, r); err != nil {
+		log.Println(err.Error)
+		http.Error(w, err.Error.Error(), err.Code)
 	}
 }
 
