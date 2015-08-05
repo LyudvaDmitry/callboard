@@ -8,13 +8,13 @@
 		<title>Callboard</title>
 		
 		<!-- Bootstrap -->
-		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 			
 		<!-- Optional theme -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 			
 		<!-- Custom styles for this template -->
-		<link href="/static/blog.css" rel="stylesheet">
+		<link rel="stylesheet" href="./static/blog.css">
 		
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -27,7 +27,7 @@
 		<div class="container">
 		
 			<div class="blog-header">
-				<img src="/static/logo.png" alt="LOGO" class="img-rounded" width="300" height="300" align="right">
+				<img src="./static/logo.png" alt="LOGO" class="img-rounded" width="300" height="300" align="right">
 				<h1 class="blog-title">The Fabulous Callboard</h1>
 				<p class="lead blog-description">My first golang package.</p>
 			</div>
@@ -50,11 +50,11 @@
 			
 			<form action="" method="POST">
 				<div class="form-group">
-					<label for="exampleInputEmail1">Title</label>
-					<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Title" name="title">
+					<label>Title</label>
+					<input type="text" class="form-control" placeholder="Title" name="title">
 				</div>
 				<div class="form-group">
-					<label for="exampleInputPassword1">Text</label>
+					<label>Text</label>
 					<textarea class="form-control" rows="3" placeholder="Advert text" name="body"></textarea>
 				</div>
 				<div class="form-group">
