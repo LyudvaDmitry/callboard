@@ -3,6 +3,7 @@ package callboard
 
 import (
 	"encoding/json"
+	"errors"
 	"html/template"
 	"log"
 	"mime"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"errors"
 )
 
 //Advert contains all the information about advert.
@@ -25,18 +25,16 @@ type Advert struct {
 //Callboard implements http.Handler interface. It creates callboard
 //available at the given URL.
 type Callboard struct {
-	Adverts  []Advert
+	Adverts []Advert
+	html    string
 	sync.Mutex
-	template *template.Template
+	*template.Template
 }
 
 //NewCallboard returns initialized Callboard.
-func NewCallboard() *Callboard {
-	return &Callboard{Adverts: make([]Advert, 0), template: template.Must(template.ParseFiles(html))}
+func NewCallboard(html_temp string) *Callboard {
+	return &Callboard{Adverts: make([]Advert, 0), Template: template.Must(template.ParseFiles(html_temp)), html: html_temp}
 }
-
-//HTML template file name.
-const html = "view_bootstrap.html"
 
 //ServeHTTP reads Request and writes reply data to ResponseWriter.
 //It is required by http.Handler interface.
@@ -44,21 +42,17 @@ func (c *Callboard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, "/view") {
 		if err := c.viewHandler(w, r); err != nil {
 			log.Println(err.Error)
-	        http.Error(w, err.Error.Error(), err.Code)
-	    }
-	}
-	//Sends to fileserver if URL looks like ".../static/filename"
-	parsedPath := strings.Split(r.URL.Path, "/")
-	path := strings.TrimSuffix(r.URL.Path, parsedPath[len(parsedPath) - 1])
-	if strings.HasSuffix(path, "/static/") {
-		http.StripPrefix(path, http.FileServer(http.Dir("./static/"))).ServeHTTP(w, r)
+			http.Error(w, err.Error.Error(), err.Code)
+		}
+	} else {
+		http.Error(w, "404 not found", 404)
 	}
 }
 
 //appError used to return both error and http error code.
 type appError struct {
-    Error   error
-    Code    int
+	Error error
+	Code  int
 }
 
 func (c *Callboard) viewHandler(w http.ResponseWriter, r *http.Request) *appError {
@@ -103,13 +97,13 @@ func (c *Callboard) viewHandler(w http.ResponseWriter, r *http.Request) *appErro
 	//Shows callboard
 	log.Println("Executing templates")
 	w.Header().Set("Content-Type", "text/html")
-	if err := c.template.ExecuteTemplate(w, html, c.Adverts); err != nil {
+	if err := c.ExecuteTemplate(w, c.html, c.Adverts); err != nil {
 		return &appError{err, http.StatusInternalServerError}
 	}
 	return nil
 }
 
-//ifMIMETypePreferred checks if given MIME type is one of the most preferred 
+//ifMIMETypePreferred checks if given MIME type is one of the most preferred
 //by given http.Request.
 func ifMIMETypePreferred(r *http.Request, mtype string) (bool, error) {
 	accept := make([]string, 0)
