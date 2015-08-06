@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+		<title>Callboard</title>
+		
+	</head>
+	<body>
+		<h1 class="blog-title">The Fabulous Callboard</h1>
+		<p class="lead blog-description"><a href="https://github.com/LyudvaDmitry/test_repository">github.com/LyudvaDmitry/test_repository</a></p>
+		
+		{{range .}} 
+			<div class="blog-post">
+				<h2 class="blog-post-title">{{.NonExistingField}}</h2>
+				<p class="blog-post-meta">{{.Time}} by {{.Username}}</p>
+				<p>{{.Body}}</p>
+			</div><!-- /.blog-post -->
+		{{end}}
+	
+	</body
+</html>

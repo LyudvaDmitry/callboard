@@ -40,14 +40,14 @@ func NewCallboard(html_temp string) *Callboard {
 //It is required by http.Handler interface.
 func (c *Callboard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := c.viewHandler(w, r); err != nil {
-		log.Println(err.Error)
-		http.Error(w, err.Error.Error(), err.Code)
+		log.Println(err.error)
+		http.Error(w, err.Error(), err.Code)
 	}
 }
 
 //appError used to return both error and http error code.
 type appError struct {
-	Error error
+	error
 	Code  int
 }
 
@@ -83,7 +83,7 @@ func (c *Callboard) viewHandler(w http.ResponseWriter, r *http.Request) *appErro
 			log.Printf("Adding advert '%v' as %s", title, username)
 			c.Adverts = append(c.Adverts, Advert{title, r.FormValue("body"), username, time.Now().Format(time.RFC850)})
 		case "DeleteAll":
-			log.Printf("Deleting all c.Adverts as %s", username)
+			log.Printf("Deleting all adverts as %s", username)
 			c.Adverts = make([]Advert, 0)
 		}
 		c.Unlock()
